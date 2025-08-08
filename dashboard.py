@@ -25,7 +25,7 @@ st.markdown("""
     
     /* Custom header styling */
     .main-header {
-        font-size: 2.5rem;
+        font-size: 3rem;
         font-weight: bold;
         color: #fff; /* A vibrant color for the title */
         text-align: center;
