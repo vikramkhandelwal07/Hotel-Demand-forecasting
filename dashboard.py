@@ -25,7 +25,7 @@ st.markdown("""
     
     /* Custom header styling */
     .main-header {
-        font-size: 3rem;
+        font-size: 4rem;
         font-weight: bold;
         color: #fff; /* A vibrant color for the title */
         text-align: center;
@@ -1305,13 +1305,3 @@ st.sidebar.markdown("""
 
 # Footer
 st.markdown("---")
-st.markdown(
-    """
-    <div style='text-align: center; color: #666; font-size: 14px;'>
-        <p>🏨 <strong>Hotel Booking Analytics Dashboard</strong> | Built with Streamlit & Plotly</p>
-        <p>📊 Upload your CSV file to explore comprehensive hotel booking insights</p>
-        <p>🔍 Supports interactive filtering, multiple visualization types, and data export</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)

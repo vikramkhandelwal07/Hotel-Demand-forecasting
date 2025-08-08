@@ -26,6 +26,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+
 # Enhanced CSS with cleaner dark styling (similar to second dashboard)
 st.markdown("""
 <style>
