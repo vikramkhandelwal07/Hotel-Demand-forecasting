@@ -1,8 +1,22 @@
 import streamlit as st
 import pandas as pd
-import joblib
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
+
+# Try to import required packages with error handling
+try:
+    import joblib
+except ImportError:
+    st.error("❌ joblib is not installed. Please add 'joblib' to your requirements.txt file.")
+    st.code("pip install joblib")
+    st.stop()
+
+try:
+    from prophet import Prophet
+except ImportError:
+    st.error("❌ Prophet is not installed. Please add 'prophet' to your requirements.txt file.")
+    st.code("pip install prophet")
+    st.stop()
 
 # Set page config
 st.set_page_config(
@@ -20,18 +34,38 @@ st.sidebar.header("Forecast Settings")
 @st.cache_resource
 def load_prophet_model():
     try:
-        model = joblib.load("prophetmodel.joblib")
-        return model
+        # Try different possible model file names
+        model_files = ["prophetmodel.joblib", "prophet_model.joblib", "model.joblib"]
+        
+        for model_file in model_files:
+            try:
+                model = joblib.load(model_file)
+                st.sidebar.success(f"✅ Prophet model loaded from {model_file}")
+                return model
+            except FileNotFoundError:
+                continue
+        
+        # If no model file found, show error with instructions
+        st.error("❌ No Prophet model file found!")
+        st.markdown("""
+        **Expected model files:** `prophetmodel.joblib`, `prophet_model.joblib`, or `model.joblib`
+        
+        **To create a model file:**
+        1. Train your Prophet model
+        2. Save it using: `joblib.dump(model, 'prophetmodel.joblib')`
+        3. Upload the file to your repository
+        """)
+        return None
+        
     except Exception as e:
-        st.error(f"Error loading model: {e}")
+        st.error(f"❌ Error loading model: {e}")
         return None
 
+# Check if model file exists before trying to load
 model = load_prophet_model()
 
 if model is None:
     st.stop()
-
-st.sidebar.success("✅ Prophet model loaded")
 
 # Date inputs
 st.sidebar.subheader("Select Forecast Period")
@@ -50,7 +84,7 @@ end_date = pd.to_datetime(end_date)
 
 # Validate dates
 if start_date >= end_date:
-    st.error("Start date must be before end date")
+    st.error("❌ Start date must be before end date")
     st.stop()
 
 # Generate forecast
@@ -78,18 +112,21 @@ if st.sidebar.button("Generate Forecast") or True:  # Auto-generate
             
             with col2:
                 max_guests = predictions['Prediction'].max()
-                st.metric("Peak Day", f"{max_guests:.0f}")
+                max_date = predictions.loc[predictions['Prediction'].idxmax(), 'Date'].strftime('%m/%d')
+                st.metric("Peak Day", f"{max_guests:.0f}", delta=f"on {max_date}")
             
             with col3:
                 min_guests = predictions['Prediction'].min()
-                st.metric("Low Day", f"{min_guests:.0f}")
+                min_date = predictions.loc[predictions['Prediction'].idxmin(), 'Date'].strftime('%m/%d')
+                st.metric("Low Day", f"{min_guests:.0f}", delta=f"on {min_date}")
             
             with col4:
                 total_guests = predictions['Prediction'].sum()
-                st.metric("Total Guests", f"{total_guests:.0f}")
+                days = len(predictions)
+                st.metric("Total Guests", f"{total_guests:.0f}", delta=f"{days} days")
             
             # Plot forecast
-            st.subheader("Forecast Visualization")
+            st.subheader("📈 Forecast Visualization")
             
             fig = go.Figure()
             
@@ -99,7 +136,8 @@ if st.sidebar.button("Generate Forecast") or True:  # Auto-generate
                 y=predictions['Prediction'],
                 mode='lines+markers',
                 name='Predicted Guests',
-                line=dict(color='blue', width=3)
+                line=dict(color='#1f77b4', width=3),
+                marker=dict(size=6)
             ))
             
             # Add confidence interval
@@ -118,21 +156,23 @@ if st.sidebar.button("Generate Forecast") or True:  # Auto-generate
                 fill='tonexty',
                 mode='lines',
                 line_color='rgba(0,0,0,0)',
-                name='Confidence Interval',
-                fillcolor='rgba(0,100,255,0.2)'
+                name='95% Confidence Interval',
+                fillcolor='rgba(31,119,180,0.2)'
             ))
             
             fig.update_layout(
                 title="Hotel Guest Demand Forecast",
                 xaxis_title="Date",
                 yaxis_title="Number of Guests",
-                height=500
+                height=500,
+                hovermode='x unified',
+                showlegend=True
             )
             
             st.plotly_chart(fig, use_container_width=True)
             
             # Display data table
-            st.subheader("Forecast Data")
+            st.subheader("📊 Forecast Data")
             predictions_display = predictions.copy()
             predictions_display['Date'] = predictions_display['Date'].dt.strftime('%Y-%m-%d')
             predictions_display['Prediction'] = predictions_display['Prediction'].round(0).astype(int)
@@ -144,16 +184,22 @@ if st.sidebar.button("Generate Forecast") or True:  # Auto-generate
             # Download option
             csv = predictions_display.to_csv(index=False)
             st.download_button(
-                label="Download CSV",
+                label="📥 Download CSV",
                 data=csv,
                 file_name=f"hotel_forecast_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.csv",
                 mime="text/csv"
             )
             
         except Exception as e:
-            st.error(f"Error generating forecast: {e}")
+            st.error(f"❌ Error generating forecast: {e}")
             st.error("Make sure your Prophet model was trained with 'ds' and 'y' columns")
+            
+            # Show debug info
+            with st.expander("Debug Information"):
+                st.write("Model type:", type(model))
+                if hasattr(model, 'history'):
+                    st.write("Model history columns:", model.history.columns.tolist() if model.history is not None else "None")
 
 # Footer
 st.markdown("---")
-st.markdown("**Prophet Model Dashboard** | Built with Streamlit")
+st.markdown("**Prophet Model Dashboard** | Built with Streamlit | 🚀 Powered by Prophet forecasting")
