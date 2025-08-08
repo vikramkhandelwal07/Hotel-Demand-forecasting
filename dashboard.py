@@ -113,7 +113,7 @@ st.markdown("""
 
 # Title
 st.markdown('<p class="main-header">🏨 Hotel Booking Analytics Dashboard</p>', unsafe_allow_html=True)
-
+st.markdown("Check out the [Forecasting App](https://prohotelytics.streamlit.app/)")
 # Define a single function to load the data from a static file
 @st.cache_data
 def load_data():

@@ -341,7 +341,7 @@ st.markdown("""
     <p>Advanced Demand Forecasting • Powered by Prophet AI</p>
 </div>
 """, unsafe_allow_html=True)
-
+st.markdown("Visit the [Analytics Dashboard](https://prohotelyticsdashboard.streamlit.app/)")
 # Sidebar
 st.sidebar.markdown('<div class="sidebar-header"> Forecast Configuration</div>', unsafe_allow_html=True)
 
