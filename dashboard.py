@@ -11,31 +11,102 @@ st.set_page_config(
     page_title="Hotel Booking Analytics Dashboard",
     page_icon="🏨",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-# Custom CSS for better styling
+# Custom CSS for a professional dark theme
 st.markdown("""
 <style>
+    /* Overall page styling */
+    .stApp {
+        background-color: #000; /* Dark background */
+        color: #c9d1d9; /* Light text */
+    }
+    
+    /* Custom header styling */
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #1f4e79;
+        color: #fff; /* A vibrant color for the title */
         text-align: center;
         margin-bottom: 2rem;
+        padding-top: 1rem;
     }
+    
+    /* Sidebar styling */
+    [data-testid="stSidebar"] {
+        background-color: #161b22; /* Slightly different dark shade for contrast */
+        border-right: 1px solid #30363d;
+        color: #c9d1d9;
+    }
+    
+    /* Card-like containers for metrics and content */
     .metric-container {
-        background-color: #f0f2f6;
-        padding: 1rem;
+        background-color: #161b22;
+        padding: 1.5rem;
         border-radius: 10px;
-        margin: 0.5rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+        margin: 1rem 0;
+        border: 1px solid #30363d;
     }
-    .sidebar .sidebar-content {
-        background-color: #fafafa;
+
+    /* Improve Streamlit metrics display */
+    [data-testid="stMetric"] {
+        background-color: #161b22;
+        border: 1px solid #30363d;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: none;
+        margin: 1rem;
     }
-    .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
-        font-size: 16px;
-        font-weight: bold;
+    
+    [data-testid="stMetricLabel"] {
+        color: #c9d1d9;
+    }
+
+    [data-testid="stMetricValue"] {
+        color: #58a6ff;
+    }
+    
+    /* Tab styling for better readability */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 8px;
+    }
+    
+    .stTabs [data-baseweb="tab-list"] button {
+        background-color: #161b22;
+        color: #c9d1d9;
+        border: 1px solid #30363d;
+        border-radius: 6px;
+        transition: all 0.3s ease;
+        padding: 1rem;
+        
+    }
+    
+    .stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+        background-color: #58a6ff; /* Highlight active tab */
+        color: #0d1117;
+        border: 1px solid #58a6ff;
+    }
+
+    /* Styling for buttons */
+    .stButton > button {
+        background-color: #58a6ff;
+        color: black;
+        border-radius: 5px;
+        border: none;
+        padding: 0.5rem 1rem;
+    }
+
+    /* Expander styling */
+    .st-emotion-cache-1ft9t0x p {
+        font-size: 1rem;
+    }
+
+    /* Dataframe styling */
+    .stDataFrame {
+        border-radius: 8px;
+        border: 1px solid #30363d;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -80,6 +151,7 @@ try:
     )
     
     # Global filters
+    st.sidebar.markdown("---")
     st.sidebar.subheader("🔍 Global Filters")
     
     # Hotel filter
@@ -117,7 +189,9 @@ try:
         if page == "📊 Overview":
             st.header("📊 Dataset Overview")
             
-            # Key metrics
+            st.markdown("---")
+            
+            st.subheader("Key Performance Indicators")
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
@@ -144,46 +218,53 @@ try:
                 else:
                     st.metric("Avg Lead Time", "N/A")
             
+            st.markdown("---")
+            
             # Dataset information
             st.subheader("📋 Dataset Information")
-            col1, col2 = st.columns(2)
             
-            with col1:
-                st.write("**Dataset Shape:**", filtered_data.shape)
-                st.write("**Columns:**", len(filtered_data.columns))
+            with st.container(border=True):
+                col1, col2 = st.columns(2)
                 
-                # Missing values
-                st.write("**Missing Values:**")
-                missing_vals = filtered_data.isnull().sum()
-                if missing_vals.sum() == 0:
-                    st.success("No missing values found! ✅")
-                else:
-                    missing_df = pd.DataFrame({
-                        'Column': missing_vals.index,
-                        'Missing Count': missing_vals.values,
-                        'Missing %': (missing_vals.values / len(filtered_data) * 100).round(2)
+                with col1:
+                    st.write("**Dataset Shape:**", filtered_data.shape)
+                    st.write("**Columns:**", len(filtered_data.columns))
+                    
+                    # Missing values
+                    st.write("**Missing Values:**")
+                    missing_vals = filtered_data.isnull().sum()
+                    if missing_vals.sum() == 0:
+                        st.success("No missing values found! ✅")
+                    else:
+                        with st.expander("Show Missing Values Details"):
+                            missing_df = pd.DataFrame({
+                                'Column': missing_vals.index,
+                                'Missing Count': missing_vals.values,
+                                'Missing %': (missing_vals.values / len(filtered_data) * 100).round(2)
+                            })
+                            st.dataframe(missing_df[missing_df['Missing Count'] > 0], use_container_width=True)
+                
+                with col2:
+                    st.write("**Data Types:**")
+                    dtypes_df = pd.DataFrame({
+                        'Column': filtered_data.dtypes.index,
+                        'Data Type': filtered_data.dtypes.values
                     })
-                    st.dataframe(missing_df[missing_df['Missing Count'] > 0])
-            
-            with col2:
-                st.write("**Data Types:**")
-                dtypes_df = pd.DataFrame({
-                    'Column': filtered_data.dtypes.index,
-                    'Data Type': filtered_data.dtypes.values
-                })
-                st.dataframe(dtypes_df.head(15), use_container_width=True)
+                    st.dataframe(dtypes_df.head(15), use_container_width=True)
             
             # Quick statistics for numerical columns
             st.subheader("📊 Numerical Columns Statistics")
-            numeric_cols = filtered_data.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) > 0:
-                st.dataframe(filtered_data[numeric_cols].describe(), use_container_width=True)
-            else:
-                st.info("No numerical columns found in the dataset.")
+            with st.container(border=True):
+                numeric_cols = filtered_data.select_dtypes(include=[np.number]).columns
+                if len(numeric_cols) > 0:
+                    st.dataframe(filtered_data[numeric_cols].describe(), use_container_width=True)
+                else:
+                    st.info("No numerical columns found in the dataset.")
             
             # Sample data preview
             st.subheader("👀 Data Preview")
-            st.dataframe(filtered_data.head(10), use_container_width=True)
+            with st.container(border=True):
+                st.dataframe(filtered_data.head(10), use_container_width=True)
         
         # Univariate Analysis Page
         elif page == "📈 Univariate Analysis":
@@ -194,8 +275,9 @@ try:
             with tab1:
                 st.subheader("Numerical Variable Distributions")
                 
+                col1, col2 = st.columns(2)
+                
                 if 'lead_time' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col1:
                         fig1 = px.histogram(
                             filtered_data,
@@ -213,8 +295,9 @@ try:
                         )
                         st.plotly_chart(fig1b, use_container_width=True)
                 
+                col1, col2 = st.columns(2)
+                
                 if 'adr' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col1:
                         fig2 = px.histogram(
                             filtered_data,
@@ -232,8 +315,9 @@ try:
                         )
                         st.plotly_chart(fig2b, use_container_width=True)
                 
+                col1, col2 = st.columns(2)
+                
                 if 'total people' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col1:
                         fig3 = px.histogram(
                             filtered_data,
@@ -241,18 +325,20 @@ try:
                             title='Total People per Booking Distribution'
                         )
                         st.plotly_chart(fig3, use_container_width=True)
-                    if 'total stayed' in filtered_data.columns:
-                        with col2:
-                            fig4 = px.histogram(
-                                filtered_data,
-                                x='total stayed',
-                                title='Total Stay Duration Distribution',
-                                labels={'total stayed': 'Total Nights Stayed'}
-                            )
-                            st.plotly_chart(fig4, use_container_width=True)
                 
-                if 'stays_in_weekend_nights' in filtered_data.columns and 'stays_in_week_nights' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
+                if 'total stayed' in filtered_data.columns:
+                    with col2:
+                        fig4 = px.histogram(
+                            filtered_data,
+                            x='total stayed',
+                            title='Total Stay Duration Distribution',
+                            labels={'total stayed': 'Total Nights Stayed'}
+                        )
+                        st.plotly_chart(fig4, use_container_width=True)
+                
+                col1, col2 = st.columns(2)
+                
+                if 'stays_in_weekend_nights' in filtered_data.columns:
                     with col1:
                         fig5 = px.histogram(
                             filtered_data,
@@ -260,6 +346,8 @@ try:
                             title='Weekend Nights Distribution'
                         )
                         st.plotly_chart(fig5, use_container_width=True)
+                
+                if 'stays_in_week_nights' in filtered_data.columns:
                     with col2:
                         fig6 = px.histogram(
                             filtered_data,
@@ -293,8 +381,9 @@ try:
                         )
                         st.plotly_chart(fig8, use_container_width=True)
                 
+                col1, col2 = st.columns(2)
+                
                 if 'market_segment' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col1:
                         market_counts = filtered_data['market_segment'].value_counts()
                         fig9 = px.bar(
@@ -316,8 +405,9 @@ try:
                         fig10.update_xaxes(tickangle=45)
                         st.plotly_chart(fig10, use_container_width=True)
                 
+                col1, col2 = st.columns(2)
+                
                 if 'meal' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col1:
                         meal_counts = filtered_data['meal'].value_counts()
                         fig11 = px.pie(
@@ -414,8 +504,9 @@ try:
             with tab2:
                 st.subheader("Key Relationships")
                 
+                col1, col2 = st.columns(2)
+                
                 if 'adr' in filtered_data.columns and 'lead_time' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col1:
                         fig1 = px.scatter(
                             filtered_data.sample(min(5000, len(filtered_data))),
@@ -427,7 +518,6 @@ try:
                         st.plotly_chart(fig1, use_container_width=True)
                 
                 if 'adr' in filtered_data.columns and 'total stayed' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col2:
                         fig2 = px.scatter(
                             filtered_data.sample(min(5000, len(filtered_data))),
@@ -438,33 +528,38 @@ try:
                         )
                         st.plotly_chart(fig2, use_container_width=True)
                 
-                if 'is_canceled' in filtered_data.columns and 'lead_time' in filtered_data.columns:
-                    filtered_data_copy = filtered_data.copy()
-                    bins = pd.cut(filtered_data_copy['lead_time'], bins=10, retbins=True, labels=False, duplicates='drop')[1]
-                    labels = [f'{int(bins[i])}-{int(bins[i+1])}' for i in range(len(bins)-1)]
-                    filtered_data_copy['lead_time_bin'] = pd.cut(
-                        filtered_data_copy['lead_time'],
-                        bins=bins,
-                        labels=labels,
-                        right=False,
-                        include_lowest=True
-                    )
-                    cancel_by_leadtime = filtered_data_copy.groupby('lead_time_bin')['is_canceled'].mean().reset_index()
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        fig3 = px.bar(
-                            cancel_by_leadtime,
-                            x='lead_time_bin',
-                            y='is_canceled',
-                            title='Cancellation Rate by Lead Time Bins'
-                        )
-                        fig3.update_xaxes(tickangle=45)
-                        fig3.update_yaxes(tickformat=".0%")
-                        st.plotly_chart(fig3, use_container_width=True)
+                col1, col2 = st.columns(2)
                 
+                if 'is_canceled' in filtered_data.columns and 'lead_time' in filtered_data.columns:
+                    with col1:
+                        filtered_data_copy = filtered_data.copy()
+                        # Calculate bins dynamically to handle data variations
+                        bins_count = min(10, len(filtered_data_copy['lead_time'].unique()))
+                        if bins_count > 1:
+                            bins = pd.cut(filtered_data_copy['lead_time'], bins=bins_count, retbins=True, labels=False, duplicates='drop')[1]
+                            labels = [f'{int(bins[i])}-{int(bins[i+1])}' for i in range(len(bins)-1)]
+                            filtered_data_copy['lead_time_bin'] = pd.cut(
+                                filtered_data_copy['lead_time'],
+                                bins=bins,
+                                labels=labels,
+                                right=False,
+                                include_lowest=True
+                            )
+                            cancel_by_leadtime = filtered_data_copy.groupby('lead_time_bin')['is_canceled'].mean().reset_index()
+                            
+                            fig3 = px.bar(
+                                cancel_by_leadtime,
+                                x='lead_time_bin',
+                                y='is_canceled',
+                                title='Cancellation Rate by Lead Time Bins'
+                            )
+                            fig3.update_xaxes(tickangle=45)
+                            fig3.update_yaxes(tickformat=".0%")
+                            st.plotly_chart(fig3, use_container_width=True)
+                        else:
+                            st.info("Not enough unique values in 'lead_time' to create bins.")
+
                 if 'reservation_status' in filtered_data.columns and 'hotel' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col2:
                         status_hotel = filtered_data.groupby(['hotel', 'reservation_status']).size().reset_index(name='count')
                         fig4 = px.bar(
@@ -477,8 +572,9 @@ try:
                         )
                         st.plotly_chart(fig4, use_container_width=True)
                 
+                col1, col2 = st.columns(2)
+
                 if 'booking_changes' in filtered_data.columns and 'adr' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col1:
                         fig5 = px.box(
                             filtered_data,
@@ -544,7 +640,7 @@ try:
                 
                 if 'arrival_date_month' in filtered_data.columns:
                     month_order = ['January', 'February', 'March', 'April', 'May', 'June',
-                                'July', 'August', 'September', 'October', 'November', 'December']
+                                   'July', 'August', 'September', 'October', 'November', 'December']
                     
                     monthly_bookings = filtered_data.groupby('arrival_date_month').size().reindex(month_order).reset_index(name='bookings')
                     
@@ -568,11 +664,12 @@ try:
                         fig2.update_xaxes(tickangle=45)
                         st.plotly_chart(fig2, use_container_width=True)
                 
+                col1, col2 = st.columns(2)
+
                 if 'adr' in filtered_data.columns and 'arrival_date_month' in filtered_data.columns:
-                    monthly_adr = filtered_data.groupby('arrival_date_month')['adr'].mean().reindex(month_order).reset_index()
-                    
-                    col1, col2 = st.columns(2)
                     with col1:
+                        monthly_adr = filtered_data.groupby('arrival_date_month')['adr'].mean().reindex(month_order).reset_index()
+                        
                         fig3 = px.line(
                             monthly_adr,
                             x='arrival_date_month',
@@ -583,7 +680,6 @@ try:
                         st.plotly_chart(fig3, use_container_width=True)
                 
                 if 'is_canceled' in filtered_data.columns and 'arrival_date_month' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col2:
                         monthly_cancel = filtered_data.groupby('arrival_date_month')['is_canceled'].mean().reindex(month_order).reset_index()
                         fig4 = px.line(
@@ -599,11 +695,11 @@ try:
             with tab2:
                 st.subheader("Seasonal Patterns")
                 
+                col1, col2 = st.columns(2)
+                
                 if 'arrival_date_week_number' in filtered_data.columns:
-                    weekly_bookings = filtered_data.groupby('arrival_date_week_number').size().reset_index(name='bookings')
-                    
-                    col1, col2 = st.columns(2)
                     with col1:
+                        weekly_bookings = filtered_data.groupby('arrival_date_week_number').size().reset_index(name='bookings')
                         fig5 = px.line(
                             weekly_bookings,
                             x='arrival_date_week_number',
@@ -613,7 +709,6 @@ try:
                         st.plotly_chart(fig5, use_container_width=True)
                 
                 if 'arrival_date_day_of_month' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col2:
                         daily_bookings = filtered_data.groupby('arrival_date_day_of_month').size().reset_index(name='bookings')
                         fig6 = px.bar(
@@ -626,6 +721,11 @@ try:
                 
                 if 'arrival_date_year' in filtered_data.columns and 'arrival_date_month' in filtered_data.columns:
                     yearly_monthly = filtered_data.groupby(['arrival_date_year', 'arrival_date_month']).size().reset_index(name='bookings')
+                    
+                    # Map month names to numbers for sorting
+                    month_order_dict = {month: i for i, month in enumerate(month_order)}
+                    yearly_monthly['month_sort_key'] = yearly_monthly['arrival_date_month'].map(month_order_dict)
+                    yearly_monthly.sort_values('month_sort_key', inplace=True)
                     
                     fig7 = px.line(
                         yearly_monthly,
@@ -640,11 +740,12 @@ try:
             with tab3:
                 st.subheader("Time-based Insights")
                 
+                col1, col2 = st.columns(2)
+                
                 if 'total stayed' in filtered_data.columns and 'arrival_date_month' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col1:
                         month_order = ['January', 'February', 'March', 'April', 'May', 'June',
-                                    'July', 'August', 'September', 'October', 'November', 'December']
+                                       'July', 'August', 'September', 'October', 'November', 'December']
                         monthly_stay = filtered_data.groupby('arrival_date_month')['total stayed'].mean().reindex(month_order).reset_index()
                         fig8 = px.bar(
                             monthly_stay,
@@ -658,7 +759,7 @@ try:
                 if 'lead_time' in filtered_data.columns and 'arrival_date_month' in filtered_data.columns:
                     with col2:
                         month_order = ['January', 'February', 'March', 'April', 'May', 'June',
-                                    'July', 'August', 'September', 'October', 'November', 'December']
+                                       'July', 'August', 'September', 'October', 'November', 'December']
                         monthly_leadtime = filtered_data.groupby('arrival_date_month')['lead_time'].mean().reindex(month_order).reset_index()
                         fig9 = px.line(
                             monthly_leadtime,
@@ -669,12 +770,13 @@ try:
                         fig9.update_xaxes(tickangle=45)
                         st.plotly_chart(fig9, use_container_width=True)
                 
+                col1, col2 = st.columns(2)
+                
                 if 'stays_in_weekend_nights' in filtered_data.columns and 'stays_in_week_nights' in filtered_data.columns:
-                    total_weekend = filtered_data['stays_in_weekend_nights'].sum()
-                    total_weekday = filtered_data['stays_in_week_nights'].sum()
-                    
-                    col1, col2 = st.columns(2)
                     with col1:
+                        total_weekend = filtered_data['stays_in_weekend_nights'].sum()
+                        total_weekday = filtered_data['stays_in_week_nights'].sum()
+                        
                         fig10 = px.pie(
                             values=[total_weekend, total_weekday],
                             names=['Weekend Nights', 'Weekday Nights'],
@@ -682,34 +784,31 @@ try:
                         )
                         st.plotly_chart(fig10, use_container_width=True)
                     
-                    if 'arrival_date_month' in filtered_data.columns:
-                        with col2:
-                            month_order = ['January', 'February', 'March', 'April', 'May', 'June',
-                                        'July', 'August', 'September', 'October', 'November', 'December']
-                            monthly_nights = filtered_data.groupby('arrival_date_month').agg(
-                                stays_in_weekend_nights=('stays_in_weekend_nights', 'sum'),
-                                stays_in_week_nights=('stays_in_week_nights', 'sum')
-                            ).reindex(month_order).reset_index().fillna(0)
-                            
-                            fig11 = go.Figure()
-                            fig11.add_trace(go.Bar(
-                                x=monthly_nights['arrival_date_month'],
-                                y=monthly_nights['stays_in_weekend_nights'],
-                                name='Weekend Nights',
-                                marker_color='lightblue'
-                            ))
-                            fig11.add_trace(go.Bar(
-                                x=monthly_nights['arrival_date_month'],
-                                y=monthly_nights['stays_in_week_nights'],
-                                name='Weekday Nights',
-                                marker_color='darkblue'
-                            ))
-                            fig11.update_layout(
-                                title='Monthly Weekend vs Weekday Nights',
-                                barmode='stack',
-                                xaxis_tickangle=45
-                            )
-                            st.plotly_chart(fig11, use_container_width=True)
+                    with col2:
+                        monthly_nights = filtered_data.groupby('arrival_date_month').agg(
+                            stays_in_weekend_nights=('stays_in_weekend_nights', 'sum'),
+                            stays_in_week_nights=('stays_in_week_nights', 'sum')
+                        ).reindex(month_order).reset_index().fillna(0)
+                        
+                        fig11 = go.Figure()
+                        fig11.add_trace(go.Bar(
+                            x=monthly_nights['arrival_date_month'],
+                            y=monthly_nights['stays_in_weekend_nights'],
+                            name='Weekend Nights',
+                            marker_color='#58a6ff'
+                        ))
+                        fig11.add_trace(go.Bar(
+                            x=monthly_nights['arrival_date_month'],
+                            y=monthly_nights['stays_in_week_nights'],
+                            name='Weekday Nights',
+                            marker_color='#8b949e'
+                        ))
+                        fig11.update_layout(
+                            title='Monthly Weekend vs Weekday Nights',
+                            barmode='stack',
+                            xaxis_tickangle=45
+                        )
+                        st.plotly_chart(fig11, use_container_width=True)
                 
                 st.subheader("📈 Time-based Summary Statistics")
                 
@@ -763,13 +862,14 @@ try:
                         )
                         st.plotly_chart(fig2, use_container_width=True)
                     
+                    col1, col2 = st.columns(2)
+                    
                     if 'adr' in filtered_data.columns:
-                        country_adr = filtered_data.groupby('country')['adr'].agg(['mean', 'count']).reset_index()
-                        country_adr = country_adr[country_adr['count'] >= 50]
-                        country_adr = country_adr.sort_values('mean', ascending=False).head(15)
-                        
-                        col1, col2 = st.columns(2)
                         with col1:
+                            country_adr = filtered_data.groupby('country')['adr'].agg(['mean', 'count']).reset_index()
+                            country_adr = country_adr[country_adr['count'] >= 50]
+                            country_adr = country_adr.sort_values('mean', ascending=False).head(15)
+                            
                             fig3 = px.bar(
                                 country_adr,
                                 x='mean',
@@ -781,7 +881,6 @@ try:
                             st.plotly_chart(fig3, use_container_width=True)
                     
                     if 'is_canceled' in filtered_data.columns:
-                        col1, col2 = st.columns(2)
                         with col2:
                             country_cancel = filtered_data.groupby('country').agg(
                                 cancel_rate=('is_canceled', 'mean'),
@@ -823,16 +922,17 @@ try:
                     fig5.update_xaxes(tickangle=45)
                     st.plotly_chart(fig5, use_container_width=True)
                 
+                col1, col2 = st.columns(2)
+                
                 if 'lead_time' in filtered_data.columns and 'country' in filtered_data.columns:
-                    country_leadtime = filtered_data.groupby('country').agg(
-                        avg_lead_time=('lead_time', 'mean'),
-                        count=('lead_time', 'count')
-                    ).reset_index()
-                    country_leadtime = country_leadtime[country_leadtime['count'] >= 50]
-                    country_leadtime = country_leadtime.sort_values('avg_lead_time', ascending=False).head(15)
-                    
-                    col1, col2 = st.columns(2)
                     with col1:
+                        country_leadtime = filtered_data.groupby('country').agg(
+                            avg_lead_time=('lead_time', 'mean'),
+                            count=('lead_time', 'count')
+                        ).reset_index()
+                        country_leadtime = country_leadtime[country_leadtime['count'] >= 50]
+                        country_leadtime = country_leadtime.sort_values('avg_lead_time', ascending=False).head(15)
+                        
                         fig6 = px.bar(
                             country_leadtime,
                             x='avg_lead_time',
@@ -844,7 +944,6 @@ try:
                         st.plotly_chart(fig6, use_container_width=True)
                 
                 if 'total stayed' in filtered_data.columns and 'country' in filtered_data.columns:
-                    col1, col2 = st.columns(2)
                     with col2:
                         country_stay = filtered_data.groupby('country').agg(
                             avg_stay=('total stayed', 'mean'),
@@ -1006,7 +1105,7 @@ try:
                     
                     if 'arrival_date_month' in filtered_data.columns:
                         month_order = ['January', 'February', 'March', 'April', 'May', 'June',
-                                    'July', 'August', 'September', 'October', 'November', 'December']
+                                       'July', 'August', 'September', 'October', 'November', 'December']
                         monthly_revenue = filtered_data_copy.groupby('arrival_date_month')['total_revenue'].sum().reindex(month_order).reset_index()
                         
                         fig3 = px.line(
@@ -1035,6 +1134,7 @@ try:
 
             with tab3:
                 st.subheader("Custom Analysis Builder")
+                
                 analysis_type = st.selectbox(
                     "Select Analysis Type",
                     ["Distribution Analysis", "Comparison Analysis", "Trend Analysis"],
