@@ -1,0 +1,6 @@
+,hotel,is_canceled,lead_time,arrival_date_year,arrival_date_month,arrival_date_week_number,arrival_date_day_of_month,stays_in_weekend_nights,stays_in_week_nights,adults,children,babies,meal,country,market_segment,distribution_channel,is_repeated_guest,previous_cancellations,previous_bookings_not_canceled,reserved_room_type,assigned_room_type,booking_changes,deposit_type,agent,company,days_in_waiting_list,customer_type,adr,required_car_parking_spaces,total_of_special_requests,reservation_status,reservation_status_date,total people,total stayed
+72908,City Hotel,1,128,2017,August,32,9,0,4,2,0,0,SC,USA,Online TA,TA/TO,0,0,0,A,A,1,No Deposit,9,0,0,Transient,125.0,0,1,Canceled,2017-04-07,2,4
+15636,Resort Hotel,0,24,2015,July,30,23,2,5,2,0,0,BB,SWE,Online TA,TA/TO,0,0,0,F,F,0,No Deposit,242,0,0,Transient,179.0,0,1,Check-Out,2015-07-30,2,7
+37356,Resort Hotel,0,143,2017,June,24,11,2,2,2,0,0,BB,CN,Offline TA/TO,TA/TO,0,0,0,A,A,0,No Deposit,410,0,0,Transient,58.7,0,0,Check-Out,2017-06-15,2,4
+116420,City Hotel,0,200,2017,July,29,16,2,2,2,2,0,BB,BEL,Online TA,TA/TO,0,0,0,F,F,0,No Deposit,9,0,0,Transient,179.1,0,1,Check-Out,2017-07-20,4,4
+24314,Resort Hotel,0,6,2016,May,20,14,2,1,2,0,0,BB,DEU,Online TA,TA/TO,0,0,0,E,E,0,No Deposit,240,0,0,Transient,109.0,0,1,Check-Out,2016-05-17,2,3
